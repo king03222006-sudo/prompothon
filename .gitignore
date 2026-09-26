@@ -1,0 +1,39 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.pnpm-store/
+
+# Build outputs
+dist/
+.output/
+.temp/
+.cache/
+.vite/
+.tanstack/
+routeTree.gen.ts
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun.lockb
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Local development
+.local
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

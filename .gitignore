@@ -37,3 +37,5 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+make_commits.ps1

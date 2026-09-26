@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "installCommand": "npm install && npm install --prefix backend && npm install --prefix frontend",
+  "buildCommand": "cd backend && npm run build && cd ../frontend && npm run build",
+  "outputDirectory": "frontend/dist/client",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/api/render.ts"
+    }
+  ]
+}

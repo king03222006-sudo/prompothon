@@ -166,7 +166,6 @@ export function StateLabels({ radius = 1 }: { radius?: number }) {
           anchorX="center"
           anchorY="middle"
           renderOrder={5}
-          depthTest={false}
           outlineWidth={0.0008}
           outlineColor="#00000088"
           strokeWidth={0}

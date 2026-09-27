@@ -81,7 +81,7 @@ async function fetchCountryBorders(radius: number): Promise<THREE.BufferGeometry
       "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
     );
     const topo = (await res.json()) as Topology;
-    const countries = feature(topo, topo.objects.countries as any) as GeoJSON.FeatureCollection;
+    const countries = feature(topo, topo.objects.countries as any) as unknown as GeoJSON.FeatureCollection;
     return buildLinesFromGeoJSON(countries, radius, 0.0015);
   } catch (e) {
     console.warn("Country borders failed:", e);

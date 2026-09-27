@@ -1107,7 +1107,7 @@ export function Dashboard() {
           <span className="text-[11px] text-white/50">Initializing live feeds…</span>
         </div>
       ) : (
-        <LiveEvents events={events} lastUpdated={lastUpdated} activeEventId={activeEventId} onSelect={(id) => { setActiveEventId(id); setCardOpen(true); }} />
+        <LiveEvents events={events} lastUpdated={lastUpdated} activeEventId={activeEventId} onSelect={(id) => { setActiveEventId(id); }} />
       )}
 
       <AIPanel activeEvent={activeEvent || null} />

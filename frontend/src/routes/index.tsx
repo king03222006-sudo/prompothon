@@ -10,7 +10,7 @@ import { SelectionProvider } from "@/hooks/useSelectionStore";
 import { ModeSwitcher, type AppMode } from "@/components/theory/ModeSwitcher";
 import { TheoryMode } from "@/components/theory/TheoryMode";
 
-export const Route = createFileRoute("/")({\
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "AEGIS AI — Autonomous Emergency & Global Intelligence System" },
@@ -60,7 +60,7 @@ function Index() {
         </EventsProvider>
       )}
 
-      {/* ── Theory Mode (Wikipedia-based education) ── */}
+      {/* ── Theory Mode (Educational knowledge base) ── */}
       {mode === "theory" && (
         <div className="theory-mode-container">
           <TheoryMode />

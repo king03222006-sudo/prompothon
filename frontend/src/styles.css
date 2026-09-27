@@ -1048,6 +1048,81 @@
   text-decoration-color: rgba(56, 189, 248, 0.6);
 }
 
+/* ─── Table of Contents (TOC) & Rich Reading ─────────────────── */
+
+.theory-toc-container {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+  backdrop-filter: blur(12px);
+  margin-bottom: 8px;
+}
+
+.theory-toc-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theory-toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.theory-toc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: rgba(203, 213, 225, 0.8);
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-align: left;
+}
+
+.theory-toc-item:hover {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #e0f2fe;
+  transform: translateX(2px);
+}
+
+.theory-toc-num {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: #38bdf8;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.theory-toc-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theory-section-num {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-right: 8px;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVENESS
 ════════════════════════════════════════════════════════════════ */

@@ -8,6 +8,8 @@ import { Markers } from "./Markers";
 import { Routes } from "./Routes";
 import { Satellites } from "./Satellites";
 import { Nebula } from "./Nebula";
+import { Borders } from "./Borders";
+import { StateLabels } from "./StateLabels";
 
 function SpinningEarth({ radius, sunDirection }: { radius: number; sunDirection: THREE.Vector3 }) {
   const groupRef = useRef<THREE.Group>(null!);
@@ -23,6 +25,8 @@ function SpinningEarth({ radius, sunDirection }: { radius: number; sunDirection:
   return (
     <group ref={groupRef}>
       <Earth radius={radius} sunDirection={sunDirection} />
+      <Borders radius={radius} />
+      <StateLabels radius={radius} />
       <Routes radius={radius} />
       <Markers radius={radius} />
     </group>

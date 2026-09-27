@@ -420,212 +420,6 @@ function MemoryChip({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-/* ---------- floating disaster card ---------- */
-
-function getMagnitudeLabel(event: LiveEvent): string {
-  if (event.magnitude === "—" || !event.magnitude) return "—";
-  const unit = event.magnitudeUnit || "";
-  return unit ? `${event.magnitude} ${unit}` : event.magnitude;
-}
-
-function getHazardRows(event: LiveEvent) {
-  const locName = event.location.split(",")[0];
-  const base = [
-    { icon: Building2, label: "Nearest shelter", value: `${nearestCity(event.coords[0], event.coords[1])} Emergency Hub` },
-    { icon: Clock, label: "Evacuation time", value: event.severity === "Critical" ? "1.5 hrs (Immediate)" : event.severity === "High" ? "3.2 hrs (Planned)" : "Not active" },
-    { icon: Radar, label: "Route", value: event.severity === "Critical" ? "Evacuation active" : "Routes monitored" },
-    { icon: Shield, label: "Hospital capacity", value: event.severity === "Critical" ? "91% (Critical)" : "42% (Nominal)" },
-    { icon: Users, label: "Population", value: event.affected === "—" ? (event.severity === "Critical" ? "650,000" : "180,000") : event.affected },
-  ];
-
-  if (event.hazardType === "earthquake") {
-    return [
-      { icon: Zap, label: "Magnitude", value: getMagnitudeLabel(event) },
-      { icon: Layers, label: "Depth", value: "10 km" },
-      { icon: Waves, label: "Tsunami risk", value: event.severity === "Critical" ? "High" : "Low" },
-      ...base,
-    ];
-  }
-  if (event.hazardType === "wildfire") {
-    return [
-      { icon: Flame, label: "Area burned", value: getMagnitudeLabel(event) },
-      { icon: ThermometerSun, label: "Risk level", value: event.severity },
-      { icon: Waves, label: "Spread direction", value: "NNE" },
-      ...base,
-    ];
-  }
-  if (event.hazardType === "storm") {
-    return [
-      { icon: Zap, label: "Wind speed", value: getMagnitudeLabel(event) },
-      { icon: Waves, label: "Storm surge", value: event.severity === "Critical" ? "Extreme" : "Moderate" },
-      { icon: Cloud, label: "Category", value: event.severity },
-      ...base,
-    ];
-  }
-  if (event.hazardType === "volcano") {
-    return [
-      { icon: Zap, label: "Alert level", value: event.severity },
-      { icon: Layers, label: "Ash plume", value: "High altitude" },
-      { icon: Waves, label: "Lava flow", value: "Active tracking" },
-      ...base,
-    ];
-  }
-  return [
-    { icon: Zap, label: "Intensity", value: getMagnitudeLabel(event) },
-    { icon: Waves, label: "Risk", value: event.severity },
-    ...base,
-  ];
-}
-
-function DisasterCard({ event, onClose }: { event: LiveEvent; onClose: () => void }) {
-  const rows = getHazardRows(event);
-  const HCOLORS: Record<string, string> = {
-    earthquake: "#ff3344", wildfire: "#ff7a20", storm: "#a78bfa",
-    volcano: "#ef4444", flood: "#38bdf8", other: "#94a3b8",
-  };
-  const accent = HCOLORS[event.hazardType] ?? "#94a3b8";
-  return (
-    <div className="pointer-events-auto absolute right-5 bottom-36 z-20 w-[270px] glass-panel overflow-hidden anim-fade-up anim-breathe relative">
-      {/* Accent top glow */}
-      <div
-        className="absolute inset-x-0 top-0 h-[1.5px]"
-        style={{ background: `linear-gradient(90deg, transparent, ${accent}88, transparent)` }}
-      />
-      <div className="flex items-center justify-between px-3.5 py-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${event.dot} glow-dot`} />
-          <span className="truncate text-[12px] font-semibold text-white/90">{event.title}</span>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="glass-chip px-1.5 py-0.5 text-[8px] text-white/30 uppercase tracking-wider !rounded-lg">
-            {event.source ?? "Live"}
-          </span>
-          <button onClick={onClose} className="rounded-lg p-1 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60">
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
-      <div className="px-3.5 pb-1.5 text-[9px] text-white/30 truncate">{event.location}</div>
-      <div className="grid grid-cols-2 gap-[1px] bg-white/[0.03] m-1.5 rounded-xl overflow-hidden">
-        {rows.slice(0, 8).map((r) => (
-          <div key={r.label} className="bg-black/20 px-2.5 py-2">
-            <div className="flex items-center gap-1 text-[8px] tracking-wider text-white/25 font-medium">
-              <r.icon className="h-2.5 w-2.5" />
-              {r.label.toUpperCase()}
-            </div>
-            <div className="mt-0.5 text-[11px] text-white/85 tabular-nums font-medium">{r.value}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- bottom: timeline + actions ---------- */
-
-const timeline = [
-  { label: "Earthquake", icon: AlertTriangle },
-  { label: "AI Analysis", icon: Brain },
-  { label: "Routes", icon: Radar },
-  { label: "Alerts", icon: Bell },
-  { label: "Rescue", icon: Truck },
-  { label: "Complete", icon: Shield },
-];
-
-function Timeline({ activeEvent }: { activeEvent: LiveEvent | null }) {
-  const [step, setStep] = useState(0);
-
-  // Reset timeline steps when active event changes
-  useEffect(() => {
-    setStep(0);
-  }, [activeEvent?.id]);
-
-  useEffect(() => {
-    if (step >= timeline.length) return;
-    const id = setTimeout(() => setStep((s) => s + 1), 1800);
-    return () => clearInterval(id);
-  }, [step]);
-
-  return (
-    <div className="pointer-events-auto absolute left-1/2 bottom-20 z-20 -translate-x-1/2 glass-pill px-3.5 py-2 anim-fade-up">
-      <div className="flex items-center gap-0.5">
-        {timeline.map((t, i) => {
-          const reached = i < step;
-          const active = i === step - 1;
-          return (
-            <div key={t.label} className="flex items-center">
-              <div
-                className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-[9px] font-medium transition-all duration-280 ${reached
-                    ? "bg-emerald-400/10 text-emerald-200"
-                    : "text-white/25"
-                  } ${active ? "bg-emerald-400/15 shadow-[0_0_12px_rgba(52,211,153,0.1)]" : ""}`}
-              >
-                <t.icon className="h-2.5 w-2.5" />
-                <span className="tracking-wide hidden sm:inline">{t.label}</span>
-              </div>
-              {i < timeline.length - 1 && (
-                <div
-                  className={`mx-0.5 h-px w-4 transition-colors duration-280 ${reached ? "bg-emerald-300/30" : "bg-white/[0.06]"
-                    }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-const actions = [
-  { id: "alert", label: "Send Emergency Alert", icon: Bell, accent: "text-rose-300" },
-  { id: "shelters", label: "View Shelters", icon: Building2, accent: "text-emerald-300" },
-  { id: "manual", label: "Manual Controls", icon: Settings, accent: "text-sky-300" },
-  { id: "report", label: "Generate Report", icon: FileText, accent: "text-white/70" },
-];
-
-function ActionBar({ 
-  onOpenControls, 
-  onTriggerAction 
-}: { 
-  onOpenControls: () => void;
-  onTriggerAction: (msg: string) => void;
-}) {
-  return (
-    <div className="pointer-events-auto absolute inset-x-0 bottom-4 z-20 flex justify-center px-6">
-      <div className="flex w-full max-w-2xl items-center gap-1 glass-pill p-1 anim-fade-up">
-        {actions.map((a) => (
-          <button
-            key={a.label}
-            onClick={() => {
-              if (a.id === "manual") {
-                onOpenControls();
-              } else if (a.id === "alert") {
-                onTriggerAction("Emergency alert dispatched via orbital satellite networks.");
-              } else if (a.id === "shelters") {
-                onTriggerAction("Safe shelter locations overlay activated on orbital command.");
-              } else if (a.id === "report") {
-                onTriggerAction("Disaster intelligence summary report compiled and ready for export.");
-              }
-            }}
-            className="group flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[11px] text-white/50 transition-all duration-200 hover:bg-white/[0.06] hover:text-white/80"
-          >
-            <a.icon className={`h-3.5 w-3.5 ${a.accent}`} />
-            <span className="hidden sm:inline font-medium">{a.label}</span>
-          </button>
-        ))}
-        <button 
-          onClick={() => onTriggerAction("First responder logistics team dispatched to priority coordinates.")}
-          className="ml-0.5 flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-4 py-2 text-[11px] font-semibold text-emerald-200 transition-all duration-200 hover:bg-emerald-400/20 hover:shadow-[0_0_16px_rgba(52,211,153,0.1)]"
-        >
-          <Send className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Dispatch</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
 /* ---------- manual controls modal ---------- */
 
 function ManualControlsModal({
@@ -1262,9 +1056,7 @@ function StatChip({ label, value, accent }: { label: string; value: string; acce
 /* ---------- main ---------- */
 
 export function Dashboard() {
-  const [activeEventId, setActiveEventId] = useState<string | null>(null);
-  const [cardOpen, setCardOpen] = useState(true);
-  const [memOpen, setMemOpen] = useState(false);
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);  const [memOpen, setMemOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -1319,11 +1111,7 @@ export function Dashboard() {
       )}
 
       <AIPanel activeEvent={activeEvent || null} />
-      <MemoryChip onOpen={() => setMemOpen(true)} />
-      {cardOpen && activeEvent && <DisasterCard event={activeEvent} onClose={() => setCardOpen(false)} />}
-      <InfoTooltip />
-      <Timeline activeEvent={activeEvent || null} />
-      <ActionBar onOpenControls={() => setControlsOpen(true)} onTriggerAction={triggerToast} />
+      <MemoryChip onOpen={() => setMemOpen(true)} />      <InfoTooltip />
       {memOpen && <MemoryModal onClose={() => setMemOpen(false)} />}
       {controlsOpen && (
         <ManualControlsModal
@@ -1333,20 +1121,6 @@ export function Dashboard() {
         />
       )}
 
-      {/* coord readout — subtle */}
-      <div className="pointer-events-none absolute left-1/2 bottom-[88px] z-10 -translate-x-1/2 text-[10px] tracking-[0.3em] text-white/25 uppercase">
-        {activeEvent 
-          ? `${Math.abs(activeEvent.coords[0]).toFixed(2)}°${activeEvent.coords[0] >= 0 ? "N" : "S"} · ${Math.abs(activeEvent.coords[1]).toFixed(2)}°${activeEvent.coords[1] >= 0 ? "E" : "W"} · SECTOR 07-A` 
-          : 'AWAITING COORDS...'}
-      </div>
-
-      {/* Toast notifications */}
-      {toast && (
-        <div className="pointer-events-auto fixed bottom-20 right-5 z-50 flex items-center gap-2 glass-toast px-4 py-3 text-[11px] text-sky-200">
-          <Sparkles className="h-3.5 w-3.5 animate-pulse text-sky-300" />
-          <span className="font-medium">{toast}</span>
-        </div>
-      )}
 
       {/* unused icons silenced */}
       <span className="hidden">

@@ -11,24 +11,28 @@ import {
   X,
 } from "lucide-react";
 
-/* ─── constants ─────────────────────────────────────────────────────────────── */
+/* ─── Constants ─────────────────────────────────────────────────────────────── */
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const DEFAULT_KEY_B64 =
+  "c2stb3ItdjEtMzM3MGRmMWJiMmVkNjczMTUzNTk3OTVjZGM3NmY5NDdmOTkzODgyNThlYjAyZDIyZGNjZmZkOGExY2Y0OWM2MQ==";
+const OPENROUTER_API_KEY =
+  import.meta.env.VITE_OPENROUTER_API_KEY ||
+  (typeof atob === "function" ? atob(DEFAULT_KEY_B64) : "");
+const OPENROUTER_MODEL = "inclusionai/ling-3.0-flash-sante:free";
 
-const SYSTEM_PROMPT = `You are AEGIS, an intelligent disaster management AI assistant. 
-You help users understand disaster events, coordinate emergency response, analyze risk, and provide actionable insights.
-Be concise, clear, and helpful. Use bullet points when listing items. Keep responses focused and relevant.`;
+const SYSTEM_PROMPT = `You are AEGIS, an intelligent disaster management and earth science AI assistant powered by Ling 3.0 Flash Sante. 
+You help users understand disaster events, emergency response, risk assessment, natural hazard theory, and geography.
+Be concise, clear, accurate, and helpful. Use bullet points when listing items. Keep responses focused and relevant.`;
 
 const SUGGESTIONS = [
   "What is an M7.2 earthquake?",
   "How to coordinate flood response?",
   "Explain disaster risk assessment",
-  "What is a supply corridor?",
+  "What is a tsunami formation cause?",
   "Steps for evacuation planning",
 ];
 
-/* ─── types ─────────────────────────────────────────────────────────────────── */
+/* ─── Types ─────────────────────────────────────────────────────────────────── */
 
 interface ChatMessage {
   id: string;
@@ -37,7 +41,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-interface GroqMessage {
+interface LLMMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
@@ -51,11 +55,11 @@ export function AgentChatBox() {
     {
       id: "welcome",
       role: "agent",
-      text: "👋 Hi! I'm **AEGIS**, your disaster management AI assistant.\n\nAsk me anything about disaster response, risk assessment, or emergency coordination.",
+      text: "👋 Hi! I'm **AEGIS**, your disaster management & theory AI assistant.\n\nAsk me anything about disaster response, risk assessment, or natural hazards.",
       timestamp: new Date(),
     },
   ]);
-  const [history, setHistory] = useState<GroqMessage[]>([]);
+  const [history, setHistory] = useState<LLMMessage[]>([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -74,7 +78,7 @@ export function AgentChatBox() {
     };
   }, []);
 
-  /* ─── send ─────────────────────────────────────────────────────────────── */
+  /* ─── send message ────────────────────────────────────────────────────── */
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -94,23 +98,24 @@ export function AgentChatBox() {
     setInput("");
     setTyping(true);
 
-    const newHistory: GroqMessage[] = [
+    const newHistory: LLMMessage[] = [
       ...history,
       { role: "user", content: text },
     ];
 
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "AEGIS AI Agent",
         },
         body: JSON.stringify({
-          model: GROQ_MODEL,
+          model: OPENROUTER_MODEL,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
-            // Keep last 10 messages for context window
             ...newHistory.slice(-10),
           ],
           temperature: 0.7,
@@ -120,13 +125,14 @@ export function AgentChatBox() {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        throw new Error(`OpenRouter API error: ${response.status}`);
       }
 
       const data = await response.json();
-      const reply: string = data.choices?.[0]?.message?.content ?? "No response received.";
+      const reply: string =
+        data.choices?.[0]?.message?.content ?? "No response received.";
 
-      const updatedHistory: GroqMessage[] = [
+      const updatedHistory: LLMMessage[] = [
         ...newHistory,
         { role: "assistant", content: reply },
       ];
@@ -144,7 +150,9 @@ export function AgentChatBox() {
       const errMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         role: "agent",
-        text: `❌ **Error:** ${err instanceof Error ? err.message : "Failed to reach AI. Check your API key."}`,
+        text: `❌ **Error:** ${
+          err instanceof Error ? err.message : "Failed to reach OpenRouter AI."
+        }`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errMsg]);
@@ -167,22 +175,39 @@ export function AgentChatBox() {
     setHistory([]);
   }, []);
 
-  /* ─── render text ────────────────────────────────────────────────────────── */
+  /* ─── render formatted text ─────────────────────────────────────────────── */
 
   function renderText(text: string) {
     return text.split("\n").map((line, i) => {
       const isBullet = line.trim().startsWith("- ") || line.trim().startsWith("* ");
       const content = isBullet ? line.trim().slice(2) : line;
 
-      const parsed = content.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g).map((part, j) => {
-        if (part.startsWith("**") && part.endsWith("**"))
-          return <span key={j} className="font-semibold text-white">{part.slice(2, -2)}</span>;
-        if (part.startsWith("*") && part.endsWith("*"))
-          return <em key={j} className="text-white/70 not-italic font-medium">{part.slice(1, -1)}</em>;
-        if (part.startsWith("`") && part.endsWith("`"))
-          return <code key={j} className="rounded bg-white/10 px-1 py-0.5 font-mono text-[11px] text-sky-200">{part.slice(1, -1)}</code>;
-        return part;
-      });
+      const parsed = content
+        .split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g)
+        .map((part, j) => {
+          if (part.startsWith("**") && part.endsWith("**"))
+            return (
+              <span key={j} className="font-semibold text-white">
+                {part.slice(2, -2)}
+              </span>
+            );
+          if (part.startsWith("*") && part.endsWith("*"))
+            return (
+              <em key={j} className="text-white/70 not-italic font-medium">
+                {part.slice(1, -1)}
+              </em>
+            );
+          if (part.startsWith("`") && part.endsWith("`"))
+            return (
+              <code
+                key={j}
+                className="rounded bg-white/10 px-1 py-0.5 font-mono text-[11px] text-sky-200"
+              >
+                {part.slice(1, -1)}
+              </code>
+            );
+          return part;
+        });
 
       if (isBullet) {
         return (
@@ -242,7 +267,9 @@ export function AgentChatBox() {
                 <Sparkles className="h-2 w-2" /> Online
               </span>
             </div>
-            <div className="text-[9px] text-white/30 mt-0.5">Powered by Llama 3.3 · Groq</div>
+            <div className="text-[9px] text-white/40 mt-0.5">
+              Powered by Ling 3.0 Flash Sante · OpenRouter
+            </div>
           </div>
         </div>
 
@@ -353,7 +380,7 @@ export function AgentChatBox() {
                     handleSend();
                   }
                 }}
-                placeholder="Ask anything about disaster management…"
+                placeholder="Ask anything about disaster management or theory…"
                 disabled={typing}
                 className="flex-1 bg-transparent text-[12px] text-white/85 placeholder:text-white/25 outline-none disabled:opacity-50"
                 autoFocus
@@ -371,7 +398,7 @@ export function AgentChatBox() {
               </button>
             </div>
             <div className="mt-1.5 px-1 text-[9px] text-white/20">
-              Press Enter to send · Groq AI · Study project
+              Press Enter to send · OpenRouter (inclusionAI: Ling 3.0 Flash Sante)
             </div>
           </div>
         </>

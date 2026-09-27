@@ -11,6 +11,7 @@ import {
   List,
   FileText,
 } from "lucide-react";
+import { AgentChatBox } from "../dashboard/AgentChatBox";
 
 /* ─── API helpers ───────────────────────────────────────────────────────── */
 
@@ -657,6 +658,9 @@ export function TheoryMode() {
           </article>
         )}
       </main>
+
+      {/* ── AI Chat Bot in Theory Mode ── */}
+      <AgentChatBox />
     </div>
   );
 }
